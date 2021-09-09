@@ -1,6 +1,7 @@
 ﻿using Minesweeper.Logic;
 using Minesweeper.Logic.Models;
 using Minesweeper.WPF.Converters;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -17,6 +18,14 @@ namespace Minesweeper.WPF
         {
             InitializeComponent();
             game = new(new BoardData(new SizeU(4, 4), 5));
+            game.GameOver += (sender, e) =>
+            {
+                Task.Run(() => MessageBox.Show("Koniec gry"));
+            };
+            game.GameWon += (sender, e) =>
+            {
+                Task.Run(() => MessageBox.Show("Wygrałeś"));
+            };
             CreateBoard(4, 4);
         }
 
@@ -40,7 +49,12 @@ namespace Minesweeper.WPF
                     {
                         Height = 50,
                         Width = 50,
-                        Margin = new Thickness(1.0)
+                        Margin = new Thickness(1.0),
+                        Content = new Image
+                        {
+                            Source = BitmapToBitmapImageConverter.ToBitmapImage(
+                                Logic.Properties.Resources.Default)
+                        }
                     };
                     button.PreviewMouseDown += (sender, e) =>
                     {

@@ -27,27 +27,7 @@ namespace Minesweeper.Logic
             _boardData = boardData;
             Random random = new(seed);
             _board = new Field[boardData.Height, boardData.Width];
-            int currMines = 0;
-            while (true)
-            {
-                for (int i = 0; i < boardData.Height; i++)
-                {
-                    for (int j = 0; j < boardData.Width; j++)
-                    {
-                        if(currMines == boardData.Mines)
-                        {
-                            break;
-                        }
-                        if (player.Y != i && player.X != j &&
-                            _board[i, j] == null &&
-                            random.NextDouble() <= BombChance / 100)
-                        {
-                            _board[i, j] = new Field();
-                            currMines++;
-                        }
-                    }
-                }
-            }
+            PlaceMinses(boardData, player, random);
             for (int i = 0; i < boardData.Height; i++)
             {
                 for (int j = 0; j < boardData.Width; j++)
@@ -77,6 +57,31 @@ namespace Minesweeper.Logic
             _uncoveredLeft = boardData.Height * boardData.Width - boardData.Mines;
         }
 
+        private void PlaceMinses(BoardData boardData, PointU player, Random random)
+        {
+            int currMines = 0;
+            while (true)
+            {
+                for (int i = 0; i < boardData.Height; i++)
+                {
+                    for (int j = 0; j < boardData.Width; j++)
+                    {
+                        if (currMines == boardData.Mines)
+                        {
+                            return;
+                        }
+                        if (player.Y != i && player.X != j &&
+                            _board[i, j] == null &&
+                            random.NextDouble() <= BombChance / 100)
+                        {
+                            _board[i, j] = new Field();
+                            currMines++;
+                        }
+                    }
+                }
+            }
+        }
+
         public Bitmap HandleClick(uint id, bool isLong = false)
         {
             uint x = id % _boardData.Width, y = id / _boardData.Height;
@@ -100,7 +105,18 @@ namespace Minesweeper.Logic
                     {
                         GameWon?.Invoke(this, EventArgs.Empty);
                     }
-                    return Resources.Empty;
+                    return field.CloseBombs switch
+                    {
+                        1 => Resources.Field1,
+                        2 => Resources.Field2,
+                        3 => Resources.Field3,
+                        4 => Resources.Field4,
+                        5 => Resources.Field5,
+                        6 => Resources.Field6,
+                        7 => Resources.Field7,
+                        8 => Resources.Field8,
+                        _ => Resources.Empty,
+                    };
                 }
             }
         }
