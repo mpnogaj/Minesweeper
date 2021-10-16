@@ -12,11 +12,11 @@ namespace Minesweeper.Logic.Models
         {
             try
             {
-                if (!(size.Height * size.Width).InRange(0, uint.MaxValue))
+                if (!(size.Height * size.Width).InRange(1, uint.MaxValue))
                 {
                     throw new ArgumentOutOfRangeException(nameof(size));
                 }
-                if(mines >= size.Height * size.Width)
+                if (!mines.InRange(1, size.Height * size.Width - 1))
                 {
                     throw new ArgumentOutOfRangeException(nameof(mines));
                 }

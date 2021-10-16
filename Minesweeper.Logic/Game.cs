@@ -6,7 +6,7 @@ namespace Minesweeper.Logic
 {
     public class Game
     {
-        const double BombChance = 30.0;
+        private const double BombChance = 10.0;
 
         public event EventHandler? GameOver;
         public event EventHandler? GameWon;
@@ -16,13 +16,30 @@ namespace Minesweeper.Logic
 
         private uint _uncoveredLeft;
 
-        public Game(BoardData boardData) : 
-            this(boardData, new PointU(uint.MaxValue, uint.MaxValue), new Random().Next()) { }
+        public static Game? Instance
+        {
+            get;
+            private set;
+        }
 
-        public Game(BoardData boardData, PointU player) : 
-            this(boardData, player, new Random().Next()) { }
+        public static void PrepareGame(BoardData boardData) =>
+            Instance = new Game(boardData);
 
-        public Game(BoardData boardData, PointU player, int seed)
+        public static void PrepareGame(BoardData boardData, PointU player) => 
+            Instance = new Game(boardData, player);
+
+        public static void PrepareGame(BoardData boardData, PointU player, int seed) =>
+            Instance = new Game(boardData, player, seed);
+
+        private Game(BoardData boardData) :
+            this(boardData, new PointU(uint.MaxValue, uint.MaxValue), new Random().Next())
+        { }
+
+        private Game(BoardData boardData, PointU player) :
+            this(boardData, player, new Random().Next())
+        { }
+
+        private Game(BoardData boardData, PointU player, int seed)
         {
             _boardData = boardData;
             Random random = new(seed);
@@ -82,42 +99,65 @@ namespace Minesweeper.Logic
             }
         }
 
-        public Bitmap HandleClick(uint id, bool isLong = false)
+        private static Bitmap GetCloseBombsBmp(uint closeBombs)
+        {
+            return closeBombs switch
+            {
+                1 => Resources.Field1,
+                2 => Resources.Field2,
+                3 => Resources.Field3,
+                4 => Resources.Field4,
+                5 => Resources.Field5,
+                6 => Resources.Field6,
+                7 => Resources.Field7,
+                8 => Resources.Field8,
+                _ => Resources.Empty,
+            };
+        }
+
+        public Bitmap HandleClick(uint id, bool isLong = false, Bitmap? targetBmp = null)
         {
             uint x = id % _boardData.Width, y = id / _boardData.Height;
+            return HandleClick(new PointU(x, y), isLong, targetBmp);
+        }
+
+        public Bitmap HandleClick(PointU position, bool isLong = false, Bitmap? targetBmp = null)
+        {
+            uint x = position.X, y = position.Y;
             Field field = _board[y, x];
             if (isLong)
             {
+                if (field.IsUncovered)
+                {
+                    return targetBmp ?? (field.IsBomb ? Resources.Bomb : GetCloseBombsBmp(field.CloseBombs));
+                }
                 field.ToggleFlagged();
                 return field.IsFlagged ? Resources.Flag : Resources.Default;
             }
             else
             {
-                if(field.UncoverField())
-                { 
-                    GameOver?.Invoke(this, EventArgs.Empty);
-                    return Resources.Bomb;
-                }
-                else
+                if (!field.IsUncovered)
                 {
-                    _uncoveredLeft--;
-                    if(_uncoveredLeft == 0)
+                    if (field.IsFlagged)
                     {
-                        GameWon?.Invoke(this, EventArgs.Empty);
+                        return Resources.Flag;
                     }
-                    return field.CloseBombs switch
+                    else if (field.UncoverField())
                     {
-                        1 => Resources.Field1,
-                        2 => Resources.Field2,
-                        3 => Resources.Field3,
-                        4 => Resources.Field4,
-                        5 => Resources.Field5,
-                        6 => Resources.Field6,
-                        7 => Resources.Field7,
-                        8 => Resources.Field8,
-                        _ => Resources.Empty,
-                    };
+                        GameOver?.Invoke(this, EventArgs.Empty);
+                        return Resources.Bomb;
+                    }
+                    else
+                    {
+                        _uncoveredLeft--;
+                        if (_uncoveredLeft == 0)
+                        {
+                            GameWon?.Invoke(this, EventArgs.Empty);
+                        }
+                        return GetCloseBombsBmp(field.CloseBombs);
+                    }
                 }
+                return targetBmp ?? (field.IsBomb ? Resources.Bomb : GetCloseBombsBmp(field.CloseBombs));
             }
         }
     }

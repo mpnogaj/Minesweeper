@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Interop;
+using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
 namespace Minesweeper.WPF.Converters
 {
-    public static class BitmapToBitmapImageConverter
+    public class BitmapToBitmapImageConverter
     {
         public static BitmapImage ToBitmapImage(Bitmap bitmap)
         {

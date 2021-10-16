@@ -11,4 +11,8 @@
     <ProjectReference Include="..\Minesweeper.Logic\Minesweeper.Logic.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Model\" />
+  </ItemGroup>
+
 </Project>
